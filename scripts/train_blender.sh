@@ -18,7 +18,7 @@
 SCENE=$1  # Default to 'lego' if no argument is given
 EXPERIMENT=debug
 TRAIN_DIR=/kaggle/working/res/${SCENE}
-DATA_DIR=/kaggle/input/nerf-dataset/nerf_synthetic/nerf_synthetic${SCENE}
+DATA_DIR=/kaggle/input/nerf-dataset/nerf_synthetic/nerf_synthetic/${SCENE}
 
 # ===== Run training =====
 echo "Training scene: ${SCENE}"
