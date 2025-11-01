@@ -15,14 +15,19 @@
 
 # Script for training on the Blender dataset.
 
-SCENE=lego
+SCENE=$1  # Default to 'lego' if no argument is given
 EXPERIMENT=debug
-TRAIN_DIR=/Users/barron/tmp/nerf_results/$EXPERIMENT/$SCENE
-DATA_DIR=/Users/barron/data/nerf_synthetic/$SCENE
+TRAIN_DIR=/kaggle/working/res/${SCENE}
+DATA_DIR=/kaggle/input/nerf-dataset/nerf_synthetic/nerf_synthetic${SCENE}
 
-rm $TRAIN_DIR/*
+# ===== Run training =====
+echo "Training scene: ${SCENE}"
+echo "Experiment: ${EXPERIMENT}"
+echo "Train dir: ${TRAIN_DIR}"
+echo "Data dir: ${DATA_DIR}"
+
 python -m train \
-  --data_dir=$DATA_DIR \
-  --train_dir=$TRAIN_DIR \
+  --data_dir="${DATA_DIR}" \
+  --train_dir="${TRAIN_DIR}" \
   --gin_file=configs/blender.gin \
   --logtostderr
