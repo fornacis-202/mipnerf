@@ -26,7 +26,7 @@ echo "Experiment: ${EXPERIMENT}"
 echo "Train dir: ${TRAIN_DIR}"
 echo "Data dir: ${DATA_DIR}"
 
-python -m ../train \
+python -m ../train.py \
   --data_dir="${DATA_DIR}" \
   --train_dir="${TRAIN_DIR}" \
   --gin_file=configs/blender.gin \
