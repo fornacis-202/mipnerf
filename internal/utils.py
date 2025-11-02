@@ -36,9 +36,9 @@ gin.config.external_configurable(nn.softplus, module='flax.linen')
 
 
 
-@flax.struct.dataclass
-class TrainState:
-  optimizer: flax.optim.Optimizer
+# @flax.struct.dataclass
+# class TrainState:
+#   optimizer: flax.optim.Optimizer
 
 
 @flax.struct.dataclass
