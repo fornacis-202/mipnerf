@@ -20,13 +20,23 @@ import gc
 import time
 from absl import app
 from absl import flags
-import flax
-from flax.metrics import tensorboard
-from flax.training import checkpoints
 import jax
 from jax import random
 import jax.numpy as jnp
 import numpy as np
+
+# ============================================================
+# 🧩 FIX: JAX–Flax compatibility patch (must come before flax import)
+# ============================================================
+if not hasattr(jax.config, "define_bool_state"):
+    def define_bool_state(name, default, help=None):
+        setattr(jax.config, name, default)
+    jax.config.define_bool_state = define_bool_state
+# ============================================================
+
+import flax
+from flax.metrics import tensorboard
+from flax.training import checkpoints
 
 from internal import datasets
 from internal import math
