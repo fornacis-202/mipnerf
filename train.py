@@ -57,7 +57,7 @@ except ImportError:
     jax.linear_util = lu
 # ============================================================
 
-from flax.metrics.tensorboard import SummaryWriter
+from flax.metrics import tensorboard
 from flax.training import checkpoints, train_state
 from flax.jax_utils import replicate, prefetch_to_device
 import optax
@@ -83,7 +83,7 @@ def train_step(model, config, rng, state, batch, lr):
     def loss_fn(params):
         def tree_sum_fn(fn):
             return jax.tree_util.tree_reduce(
-                lambda x, y: x + fn(y), params, initializer=0
+                lambda x, y: x + fn(y), params, initializer=0.0
             )
 
         weight_l2 = config.weight_decay_mult * (
@@ -133,7 +133,7 @@ def train_step(model, config, rng, state, batch, lr):
     def tree_norm(tree):
         return jnp.sqrt(
             jax.tree_util.tree_reduce(
-                lambda x, y: x + jnp.sum(y**2), tree, initializer=0
+                lambda x, y: x + jnp.sum(y**2), tree, initializer=0.0
             )
         )
 
@@ -195,7 +195,7 @@ def main(unused_argv):
     rng, key = random.split(rng)
     model, variables = models.construct_mipnerf(key, dataset.peek())
     num_params = jax.tree_util.tree_reduce(
-        lambda x, y: x + jnp.prod(jnp.array(y.shape)), variables, initializer=0
+        lambda x, y: x + jnp.prod(jnp.array(y.shape)), variables, initializer=0.0
     )
     print(f'Number of parameters being optimized: {num_params}')
 
