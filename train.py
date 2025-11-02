@@ -19,6 +19,19 @@ import gc
 import time
 from absl import app
 from absl import flags
+import threading
+
+# ============================================================
+# Global Kaggle TPU Keep-Alive (prevents ^C during JAX import)
+# ============================================================
+def _kaggle_keepalive():
+    while True:
+        print("💓 JAX import alive...", flush=True)
+        time.sleep(10)
+
+threading.Thread(target=_kaggle_keepalive, daemon=True).start()
+# ============================================================
+
 import jax
 from jax import random
 import jax.numpy as jnp
