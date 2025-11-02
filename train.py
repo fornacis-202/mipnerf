@@ -13,25 +13,28 @@
 # limitations under the License.
 
 """Training script for NeRF (modernized for JAX 0.4.34 / Flax 0.7.2)."""
+import os, threading, time
+
+# 1) Prevent PyTorch attempting to preload CUDA libraries on non-CUDA machines:
+#    This tells torch there are no GPUs available.
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
+# Optionally guard other torch CUDA preloads:
+os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"
+
+# 2) Global keep-alive so Kaggle won't kill the kernel during long imports/compiles:
+def _kaggle_keepalive():
+    while True:
+        print("💓 process alive...", flush=True)
+        time.sleep(10)
+
+threading.Thread(target=_kaggle_keepalive, daemon=True).start()
 
 import functools
 import gc
 import time
 from absl import app
 from absl import flags
-import threading
-
-# ============================================================
-# Global Kaggle TPU Keep-Alive (prevents ^C during JAX import)
-# ============================================================
-def _kaggle_keepalive():
-    while True:
-        print("💓 JAX import alive...", flush=True)
-        time.sleep(10)
-
-threading.Thread(target=_kaggle_keepalive, daemon=True).start()
-# ============================================================
-
 import jax
 from jax import random
 import jax.numpy as jnp
