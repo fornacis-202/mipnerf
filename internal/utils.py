@@ -20,6 +20,7 @@ from os import path
 from absl import flags
 import dataclasses
 import flax
+from flax import linen as nn
 import gin
 import jax
 import jax.numpy as jnp
@@ -29,9 +30,10 @@ from PIL import Image
 gin.add_config_file_search_path('../')
 
 
-gin.config.external_configurable(flax.nn.relu, module='flax.nn')
-gin.config.external_configurable(flax.nn.sigmoid, module='flax.nn')
-gin.config.external_configurable(flax.nn.softplus, module='flax.nn')
+gin.config.external_configurable(nn.relu, module='flax.linen')
+gin.config.external_configurable(nn.sigmoid, module='flax.linen')
+gin.config.external_configurable(nn.softplus, module='flax.linen')
+
 
 
 @flax.struct.dataclass
