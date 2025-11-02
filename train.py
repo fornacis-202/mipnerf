@@ -15,6 +15,10 @@
 # Lint as: python3
 """Training script for Nerf."""
 
+import os
+os.environ["JAX_PLATFORMS"] = "tpu,cpu"
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+
 import functools
 import gc
 import time
@@ -28,19 +32,31 @@ from jax import random
 import jax.numpy as jnp
 import numpy as np
 
+# ======= JAX–Flax Compatibility Patch =======
+from flax import config as flax_config
+if not hasattr(jax.config, "define_bool_state"):
+    def define_bool_state(name, default, help=None):
+        setattr(jax.config, name, default)
+    jax.config.define_bool_state = define_bool_state
+if not hasattr(flax_config, "flax_filter_frames"):
+    flax_config.flax_filter_frames = False
+# ============================================
+
 from internal import datasets
 from internal import math
 from internal import models
 from internal import utils
 from internal import vis
 
-
 FLAGS = flags.FLAGS
 utils.define_common_flags()
-flags.DEFINE_integer('render_every', 5000,
-                     'The number of steps between test set image renderings.')
+flags.DEFINE_integer('render_every', 5000, 'The number of steps between test set image renderings.')
 
-jax.config.parse_flags_with_absl()
+try:
+    jax.config.parse_flags_with_absl()
+except Exception:
+    pass
+
 
 
 def train_step(model, config, rng, state, batch, lr):
