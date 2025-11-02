@@ -31,9 +31,17 @@ if not hasattr(jax.config, "define_bool_state"):
     def define_bool_state(name, default, help=None):
         setattr(jax.config, name, default)
     jax.config.define_bool_state = define_bool_state
+
+import sys
+try:
+    from jax import linear_util as lu
+except ImportError:
+    import jax._src.linear_util as lu
+    sys.modules["jax.linear_util"] = lu
+    jax.linear_util = lu
 # ============================================================
 
-from flax.metrics import tensorboard
+from torch.utils import tensorboard
 from flax.training import checkpoints, train_state
 from flax.jax_utils import replicate, prefetch_to_device
 import optax
