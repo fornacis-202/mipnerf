@@ -151,11 +151,24 @@ def train_step(model, config, rng, state, batch, lr):
 
     return new_state, stats, rng
 
-
 def main(unused_argv):
     rng = random.PRNGKey(20200823)
+
+    # ============================================================
+    # ✅ Kaggle TPU Keep-Alive Thread
+    # Prevents unexpected "^C" interrupts caused by TPU watchdog.
+    # ============================================================
+    def keepalive():
+        while True:
+            print("💓 TPU alive...", flush=True)
+            time.sleep(20)
+
+    threading.Thread(target=keepalive, daemon=True).start()
+    # ============================================================
+
     np.random.seed(20201473 + jax.host_id())
     config = utils.load_config()
+
 
     if config.batch_size % jax.device_count() != 0:
         raise ValueError('Batch size must be divisible by the number of devices.')
