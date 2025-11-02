@@ -57,7 +57,7 @@ except ImportError:
     jax.linear_util = lu
 # ============================================================
 
-from torch.utils import tensorboard
+from flax.metrics.tensorboard import SummaryWriter
 from flax.training import checkpoints, train_state
 from flax.jax_utils import replicate, prefetch_to_device
 import optax
