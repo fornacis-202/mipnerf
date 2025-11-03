@@ -57,6 +57,13 @@ except ImportError:
     jax.linear_util = lu
 # ============================================================
 
+import tensorflow as tf
+if not hasattr(tf, "make_tensor_proto"):
+    from tensorflow.core.framework import tensor_pb2
+    from tensorflow.python.framework import tensor_util
+    tf.make_tensor_proto = tensor_util.make_tensor_proto
+
+
 from flax.metrics import tensorboard
 from flax.training import checkpoints, train_state
 from flax.jax_utils import replicate, prefetch_to_device
