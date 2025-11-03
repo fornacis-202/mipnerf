@@ -65,7 +65,7 @@ class Config:
   """Configuration flags for everything."""
   dataset_loader: str = 'multicam'  # The type of dataset loader to use.
   batching: str = 'all_images'  # Batch composition, [single_image, all_images].
-  batch_size: int = 4096  # The number of rays/pixels in each batch.
+  batch_size: int = 512  # The number of rays/pixels in each batch.
   factor: int = 0  # The downsample factor of images, 0 for no downsampling.
   spherify: bool = False  # Set to True for spherical 360 scenes.
   render_path: bool = False  # If True, render a path. Used only by LLFF.
