@@ -73,8 +73,16 @@ if not hasattr(tf, "make_tensor_proto"):
 
 
 
+class _DummyTensorBoardModule:
+    """A mock module to hold the real tf.summary.Writer."""
+    def __init__(self):
+        # Point SummaryWriter to the real TensorFlow class
+        self.SummaryWriter = tf.summary.Writer
 
-from flax.metrics import tensorboard
+# Create an instance named 'tensorboard' so the rest of
+# the script (e.g., 'tensorboard.SummaryWriter()') works.
+tensorboard = _DummyTensorBoardModule()
+
 from flax.training import checkpoints, train_state
 from flax.jax_utils import replicate, prefetch_to_device
 import optax
