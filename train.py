@@ -74,10 +74,12 @@ if not hasattr(tf, "make_tensor_proto"):
 
 
 class _DummyTensorBoardModule:
-    """A mock module to hold the real tf.summary.Writer."""
+    """A mock module to hold the real tf.summary.SummaryWriter."""
     def __init__(self):
-        # Point SummaryWriter to the real TensorFlow class
-        self.SummaryWriter = tf.summary.Writer
+        # FIX: The correct modern class is tf.summary.SummaryWriter
+        # We need to import the module first to ensure it's available.
+        from tensorflow.python.ops.summary_ops_v2 import SummaryWriter as tf_SummaryWriter
+        self.SummaryWriter = tf_SummaryWriter
 
 # Create an instance named 'tensorboard' so the rest of
 # the script (e.g., 'tensorboard.SummaryWriter()') works.
