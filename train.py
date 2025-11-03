@@ -56,19 +56,21 @@ except ImportError:
     sys.modules["jax.linear_util"] = lu
     jax.linear_util = lu
 # ============================================================
-
 import tensorflow as tf
+import numpy as np
 
-# ✅ TensorFlow ≥2.15 compatibility patch
-# Older flax.tensorboard expects tf.make_tensor_proto, which was moved internally.
+# ✅ Safe TensorFlow patch for TF ≥ 2.15 (Kaggle TPU compatible)
 if not hasattr(tf, "make_tensor_proto"):
-    try:
-        from tensorflow.python.framework import tensor_util
-        tf.make_tensor_proto = tensor_util.make_tensor_proto
-        print("✅ Patched TensorFlow: tf.make_tensor_proto restored")
-    except Exception as e:
-        print("⚠️ Failed to patch TensorFlow for tensorboard:", e)
-        print("Consider: pip install tensorflow==2.13.0 tensorboard==2.13.0")
+    def make_tensor_proto(values, dtype=None, shape=None):
+        """Re-implementation of tf.make_tensor_proto (for tensorboard/flax)."""
+        values = np.array(values, dtype=dtype)
+        from google.protobuf import any_pb2
+        tensor = any_pb2.Any()
+        tensor.value = values.tobytes()
+        return tensor
+    tf.make_tensor_proto = make_tensor_proto
+    print("✅ Recreated tf.make_tensor_proto manually (TensorFlow ≥2.15 detected)")
+
 
 
 
