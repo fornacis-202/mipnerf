@@ -58,10 +58,18 @@ except ImportError:
 # ============================================================
 
 import tensorflow as tf
+
+# ✅ TensorFlow ≥2.15 compatibility patch
+# Older flax.tensorboard expects tf.make_tensor_proto, which was moved internally.
 if not hasattr(tf, "make_tensor_proto"):
-    from tensorflow.core.framework import tensor_pb2
-    from tensorflow.python.framework import tensor_util
-    tf.make_tensor_proto = tensor_util.make_tensor_proto
+    try:
+        from tensorflow.python.framework import tensor_util
+        tf.make_tensor_proto = tensor_util.make_tensor_proto
+        print("✅ Patched TensorFlow: tf.make_tensor_proto restored")
+    except Exception as e:
+        print("⚠️ Failed to patch TensorFlow for tensorboard:", e)
+        print("Consider: pip install tensorflow==2.13.0 tensorboard==2.13.0")
+
 
 
 from flax.metrics import tensorboard
