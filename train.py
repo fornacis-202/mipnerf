@@ -73,15 +73,72 @@ if not hasattr(tf, "make_tensor_proto"):
 
 
 
-class _DummyTensorBoardModule:
-    """A mock module to hold the real tf.summary.SummaryWriter."""
-    def __init__(self):
-        # FIX: Access the SummaryWriter via its stable, public API path.
-        self.SummaryWriter = tf.summary.SummaryWriter
+# ----- TensorBoard compatibility shim for TF >= 2.15 -----
+# The original code expected `tf.summary.SummaryWriter`. Newer TF
+# exposes `tf.summary.create_file_writer` and tf.summary.scalar/image.
+# This small wrapper implements the minimal API used by the training script:
+#   SummaryWriter(train_dir) -> object with .scalar(name, value, step)
+#                                      .image(name, img, step)
+#                                      .flush()
+import numpy as _np
+import contextlib as _contextlib
 
-# Create an instance named 'tensorboard' so the rest of the
-# script (e.g., 'tensorboard.SummaryWriter()') works.
+class TFCompatSummaryWriter:
+    def __init__(self, logdir):
+        # create_file_writer exists in TF 2.x; if not available, raise helpful error
+        if not hasattr(tf.summary, "create_file_writer"):
+            raise RuntimeError(
+                "This TensorFlow build does not expose tf.summary.create_file_writer. "
+                "Please install a TF version with the summary API or install tensorboard."
+            )
+        self._writer = tf.summary.create_file_writer(logdir)
+        # Keep a simple cache for the last step to avoid redundant flushes if desired
+        self._last_step = None
+
+    def scalar(self, name, value, step=None):
+        # value may be numpy/JAX scalars or arrays; ensure convertible
+        with self._writer.as_default():
+            tf.summary.scalar(name, _np.asarray(value).item() if _np.asarray(value).shape == () else _np.asarray(value), step=step)
+            self._writer.flush()
+            self._last_step = step
+
+    def image(self, name, img, step=None):
+        # tf.summary.image expects a 4-D tensor: [batch, H, W, C].
+        # The training script often passes arrays shaped [H,W,3] or [B,H,W,3].
+        arr = _np.asarray(img)
+        if arr.ndim == 3:
+            arr = arr[None, ...]  # add batch dim
+        # If channels last and single image, ensure shape [B,H,W,C].
+        if arr.ndim != 4:
+            raise ValueError(f"tf summary image expects 3- or 4-D arrays, got shape {arr.shape}")
+        # Ensure dtype is float32 in [0,1] or uint8. Convert floats to float32 in [0,1].
+        if arr.dtype != _np.uint8:
+            arr = arr.astype(_np.float32)
+            # Clip to [0,1] if values look like floats
+            if arr.max() > 1.0:
+                arr = arr / 255.0
+        with self._writer.as_default():
+            tf.summary.image(name, arr, step=step)
+            self._writer.flush()
+            self._last_step = step
+
+    def flush(self):
+        try:
+            self._writer.flush()
+        except Exception:
+            pass
+
+# Create a tiny module-like holder so the rest of the script can still do:
+#   summary_writer = tensorboard.SummaryWriter(FLAGS.train_dir)
+class _DummyTensorBoardModule:
+    def __init__(self):
+        # Expose a SummaryWriter constructor compatible with older code
+        self.SummaryWriter = TFCompatSummaryWriter
+
+# Create the instance used later in the script
 tensorboard = _DummyTensorBoardModule()
+# -----------------------------------------------------------
+
 
 
 from flax.training import checkpoints, train_state
